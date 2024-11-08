@@ -1,12 +1,11 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
 *TBD*
 ```
-
 */
 package awx
 
@@ -52,6 +51,9 @@ func resourceCredentialType() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 	}
 }
