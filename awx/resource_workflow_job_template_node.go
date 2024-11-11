@@ -1,19 +1,19 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
 resource "random_uuid" "workflow_node_base_uuid" {}
 
-resource "awx_workflow_job_template_node" "default" {
-  workflow_job_template_id = awx_workflow_job_template.default.id
-  unified_job_template_id  = awx_job_template.baseconfig.id
-  inventory_id             = awx_inventory.default.id
-  identifier               = random_uuid.workflow_node_base_uuid.result
-}
-```
+	resource "awx_workflow_job_template_node" "default" {
+	  workflow_job_template_id = awx_workflow_job_template.default.id
+	  unified_job_template_id  = awx_job_template.baseconfig.id
+	  inventory_id             = awx_inventory.default.id
+	  identifier               = random_uuid.workflow_node_base_uuid.result
+	}
 
+```
 */
 package awx
 
@@ -88,27 +88,30 @@ func resourceWorkflowJobTemplateNode() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			//"success_nodes": &schema.Schema{
-			//	Type: schema.TypeList,
-			//	Elem: &schema.Schema{
-			//		Type: schema.TypeInt,
-			//	},
-			//	Optional: true,
-			//},
-			//"failure_nodes": &schema.Schema{
-			//	Type: schema.TypeList,
-			//	Elem: &schema.Schema{
-			//		Type: schema.TypeInt,
-			//	},
-			//	Optional: true,
-			//},
-			//"always_nodes": &schema.Schema{
-			//	Type: schema.TypeList,
-			//	Elem: &schema.Schema{
-			//		Type: schema.TypeInt,
-			//	},
-			//	Optional: true,
-			//},
+			"success_nodes": &schema.Schema{
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+				Optional: true,
+				Description: "List of node IDs to start when this node has completed successfully.",
+			},
+			"failure_nodes": &schema.Schema{
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+				Optional: true,
+				Description: "List of node IDs to start when this node has failed.",
+			},
+			"always_nodes": &schema.Schema{
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+				Optional: true,
+				Description: "List of node IDs to start when this node has finished.",
+			},
 
 			"all_parents_must_converge": {
 				Type:     schema.TypeBool,
@@ -137,25 +140,28 @@ func resourceWorkflowJobTemplateNodeCreate(ctx context.Context, d *schema.Resour
 	client := m.(*awx.AWX)
 	awxService := client.WorkflowJobTemplateNodeService
 
-	result, err := awxService.CreateWorkflowJobTemplateNode(map[string]interface{}{
-		"extra_data":            d.Get("extra_data").(string),
-		"inventory":             d.Get("inventory_id").(int),
-		"scm_branch":            d.Get("scm_branch").(string),
-		"skip_tags":             d.Get("skip_tags").(string),
-		"job_type":              d.Get("job_type").(string),
-		"job_tags":              d.Get("job_tags").(string),
-		"limit":                 d.Get("limit").(string),
-		"diff_mode":             d.Get("diff_mode").(bool),
-		"verbosity":             d.Get("verbosity").(int),
-		"workflow_job_template": d.Get("workflow_job_template_id").(int),
-		"unified_job_template":  d.Get("unified_job_template_id").(int),
-		//"failure_nodes":         d.Get("failure_nodes").([]interface{}),
-		//"success_nodes": d.Get("success_nodes").([]interface{}),
-		//"always_nodes":          d.Get("always_nodes").([]interface{}),
-
+	// Create params map
+	params := map[string]interface{}{
+		"extra_data":                d.Get("extra_data").(string),
+		"scm_branch":                d.Get("scm_branch").(string),
+		"skip_tags":                 d.Get("skip_tags").(string),
+		"job_type":                  d.Get("job_type").(string),
+		"job_tags":                  d.Get("job_tags").(string),
+		"limit":                     d.Get("limit").(string),
+		"diff_mode":                 d.Get("diff_mode").(bool),
+		"verbosity":                 d.Get("verbosity").(int),
+		"workflow_job_template":     d.Get("workflow_job_template_id").(int),
+		"unified_job_template":      d.Get("unified_job_template_id").(int),
 		"all_parents_must_converge": d.Get("all_parents_must_converge").(bool),
 		"identifier":                d.Get("identifier").(string),
-	}, map[string]string{})
+	}
+
+	// Only add inventory if it's set
+	if v, ok := d.GetOk("inventory_id"); ok {
+		params["inventory"] = v.(int)
+	}
+
+	result, err := awxService.CreateWorkflowJobTemplateNode(params, map[string]string{})
 	if err != nil {
 		log.Printf("Fail to Create Template %v", err)
 		diags = append(diags, diag.Diagnostic{
@@ -167,6 +173,12 @@ func resourceWorkflowJobTemplateNodeCreate(ctx context.Context, d *schema.Resour
 	}
 
 	d.SetId(strconv.Itoa(result.ID))
+
+	// Handle relationships after node creation
+	if err := handleNodeRelationships(client.WorkflowJobTemplateNodeService, result.ID, d); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return resourceWorkflowJobTemplateNodeRead(ctx, d, m)
 }
 
@@ -185,24 +197,28 @@ func resourceWorkflowJobTemplateNodeUpdate(ctx context.Context, d *schema.Resour
 		return buildDiagNotFoundFail("workflow job template node", id, err)
 	}
 
-	_, err = awxService.UpdateWorkflowJobTemplateNode(id, map[string]interface{}{
-		"extra_data":            d.Get("extra_data").(string),
-		"inventory":             d.Get("inventory_id").(int),
-		"scm_branch":            d.Get("scm_branch").(string),
-		"skip_tags":             d.Get("skip_tags").(string),
-		"job_type":              d.Get("job_type").(string),
-		"job_tags":              d.Get("job_tags").(string),
-		"limit":                 d.Get("limit").(string),
-		"diff_mode":             d.Get("diff_mode").(bool),
-		"verbosity":             d.Get("verbosity").(int),
-		"workflow_job_template": d.Get("workflow_job_template_id").(int),
-		"unified_job_template":  d.Get("unified_job_template_id").(int),
-		//"failure_nodes":             d.Get("failure_nodes").([]interface{}),
-		//"success_nodes": d.Get("success_nodes").([]interface{}),
-		//"always_nodes":              d.Get("always_nodes").([]interface{}),
+	// Create update params map
+	updateParams := map[string]interface{}{
+		"extra_data":                d.Get("extra_data").(string),
+		"scm_branch":                d.Get("scm_branch").(string),
+		"skip_tags":                 d.Get("skip_tags").(string),
+		"job_type":                  d.Get("job_type").(string),
+		"job_tags":                  d.Get("job_tags").(string),
+		"limit":                     d.Get("limit").(string),
+		"diff_mode":                 d.Get("diff_mode").(bool),
+		"verbosity":                 d.Get("verbosity").(int),
+		"workflow_job_template":     d.Get("workflow_job_template_id").(int),
+		"unified_job_template":      d.Get("unified_job_template_id").(int),
 		"all_parents_must_converge": d.Get("all_parents_must_converge").(bool),
 		"identifier":                d.Get("identifier").(string),
-	}, map[string]string{})
+	}
+
+	// Only add inventory if it's set
+	if v, ok := d.GetOk("inventory_id"); ok {
+		updateParams["inventory"] = v.(int)
+	}
+
+	_, err = awxService.UpdateWorkflowJobTemplateNode(id, updateParams, map[string]string{})
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -210,6 +226,11 @@ func resourceWorkflowJobTemplateNodeUpdate(ctx context.Context, d *schema.Resour
 			Detail:   fmt.Sprintf("WorkflowJobTemplateNode with name %s in the project id %d failed to update %s", d.Get("name").(string), d.Get("project_id").(int), err.Error()),
 		})
 		return diags
+	}
+
+	// Handle relationship updates
+	if err := handleNodeRelationships(client.WorkflowJobTemplateNodeService, id, d); err != nil {
+		return diag.FromErr(err)
 	}
 
 	return resourceWorkflowJobTemplateNodeRead(ctx, d, m)
@@ -229,7 +250,40 @@ func resourceWorkflowJobTemplateNodeRead(ctx context.Context, d *schema.Resource
 		return buildDiagNotFoundFail("workflow job template node", id, err)
 
 	}
+	
+	// Get related nodes
+	successNodes, err := awxService.GetNodeRelationships(id, "success_nodes")
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	failureNodes, err := awxService.GetNodeRelationships(id, "failure_nodes")
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	alwaysNodes, err := awxService.GetNodeRelationships(id, "always_nodes")
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Convert node lists to []int for storage
+	successIDs := make([]int, len(successNodes))
+	for i, node := range successNodes {
+		successIDs[i] = node.ID
+	}
+	failureIDs := make([]int, len(failureNodes))
+	for i, node := range failureNodes {
+		failureIDs[i] = node.ID
+	}
+	alwaysIDs := make([]int, len(alwaysNodes))
+	for i, node := range alwaysNodes {
+		alwaysIDs[i] = node.ID
+	}
+
 	d = setWorkflowJobTemplateNodeResourceData(d, res)
+	d.Set("success_nodes", successIDs)
+	d.Set("failure_nodes", failureIDs)
+	d.Set("always_nodes", alwaysIDs)
+
 	return nil
 }
 
@@ -262,10 +316,6 @@ func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.Workf
 	d.Set("limit", r.Limit)
 	d.Set("diff_mode", r.DiffMode)
 	d.Set("verbosity", r.Verbosity)
-	//d.Set("failure_nodes", r.FailureNodes)
-	//d.Set("success_nodes", r.SuccessNodes)
-	//d.Set("always_nodes", r.AlwaysNodes)
-
 	d.Set("workflow_job_template_id", strconv.Itoa(r.WorkflowJobTemplate))
 	d.Set("unified_job_template_id", strconv.Itoa(r.UnifiedJobTemplate))
 	d.Set("all_parents_must_converge", r.AllParentsMustConverge)
@@ -273,4 +323,58 @@ func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.Workf
 
 	d.SetId(strconv.Itoa(r.ID))
 	return d
+}
+
+func handleNodeRelationships(awxService *awx.WorkflowJobTemplateNodeService, nodeID int, d *schema.ResourceData) error {
+	relationshipEndpoints := []string{"success_nodes", "failure_nodes", "always_nodes"}
+
+	// For each relationship type
+	for _, endpoint := range relationshipEndpoints {
+		// Get existing relationships
+		existing, err := awxService.GetNodeRelationships(nodeID, endpoint)
+		if err != nil {
+			return fmt.Errorf("failed to get existing %s relationships: %v", endpoint, err)
+		}
+
+		// Convert existing relationships to a map for easy lookup
+		existingMap := make(map[int]bool)
+		for _, node := range existing {
+			existingMap[node.ID] = true
+		}
+
+		// Get desired relationships from Terraform config
+		var desiredNodes []int
+		if nodes, ok := d.GetOk(endpoint); ok {
+			nodeList := nodes.([]interface{})
+			for _, node := range nodeList {
+				desiredNodes = append(desiredNodes, node.(int))
+			}
+		}
+
+		// Convert desired relationships to a map for easy lookup
+		desiredMap := make(map[int]bool)
+		for _, nodeID := range desiredNodes {
+			desiredMap[nodeID] = true
+		}
+
+		// Remove relationships that are no longer desired
+		for existingNodeID := range existingMap {
+			if !desiredMap[existingNodeID] {
+				if err := awxService.DisassociateNodeRelationship(nodeID, existingNodeID, endpoint); err != nil {
+					return fmt.Errorf("failed to remove %s relationship: %v", endpoint, err)
+				}
+			}
+		}
+
+		// Add new desired relationships
+		for desiredNodeID := range desiredMap {
+			if !existingMap[desiredNodeID] {
+				if err := awxService.AssociateNodeRelationship(nodeID, desiredNodeID, endpoint); err != nil {
+					return fmt.Errorf("failed to create %s relationship: %v", endpoint, err)
+				}
+			}
+		}
+	}
+
+	return nil
 }
