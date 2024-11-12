@@ -1,16 +1,17 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-resource "awx_workflow_job_template" "default" {
-  name            = "workflow-job"
-  organization_id = var.organization_id
-  inventory_id    = awx_inventory.default.id
-}
-```
 
+	resource "awx_workflow_job_template" "default" {
+	  name            = "workflow-job"
+	  organization_id = var.organization_id
+	  inventory_id    = awx_inventory.default.id
+	}
+
+```
 */
 package awx
 
@@ -20,9 +21,9 @@ import (
 	"log"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 )
 
 func resourceWorkflowJobTemplate() *schema.Resource {
@@ -113,6 +114,9 @@ func resourceWorkflowJobTemplate() *schema.Resource {
 				Optional: true,
 				Default:  "",
 			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 	}
 }

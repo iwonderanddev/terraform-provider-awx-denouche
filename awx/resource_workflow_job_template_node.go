@@ -21,11 +21,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 )
 
 func resourceWorkflowJobTemplateNode() *schema.Resource {
@@ -123,9 +124,9 @@ func resourceWorkflowJobTemplateNode() *schema.Resource {
 				Required: true,
 			},
 		},
-		//Importer: &schema.ResourceImporter{
-		//	State: schema.ImportStatePassthrough,
-		//},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		//
 		//Timeouts: &schema.ResourceTimeout{
 		//	Create: schema.DefaultTimeout(1 * time.Minute),
@@ -134,6 +135,42 @@ func resourceWorkflowJobTemplateNode() *schema.Resource {
 		//},
 	}
 }
+
+// Helper function to sort and deduplicate an array of integers
+func normalizeIntArray(arr []int) []int {
+	if len(arr) == 0 {
+		return arr
+	}
+	
+	// Convert to map to remove duplicates
+	uniqueMap := make(map[int]bool)
+	for _, num := range arr {
+		uniqueMap[num] = true
+	}
+	
+	// Convert back to slice
+	result := make([]int, 0, len(uniqueMap))
+	for num := range uniqueMap {
+		result = append(result, num)
+	}
+	
+	// Sort the slice
+	sort.Ints(result)
+	return result
+}
+
+// Helper function to convert schema.TypeList to []int and normalize it
+func getNodeList(d *schema.ResourceData, field string) []int {
+	var result []int
+	if nodes, ok := d.GetOk(field); ok {
+		nodeList := nodes.([]interface{})
+		for _, node := range nodeList {
+			result = append(result, node.(int))
+		}
+	}
+	return normalizeIntArray(result)
+}
+
 
 func resourceWorkflowJobTemplateNodeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -270,14 +307,19 @@ func resourceWorkflowJobTemplateNodeRead(ctx context.Context, d *schema.Resource
 	for i, node := range successNodes {
 		successIDs[i] = node.ID
 	}
+	successIDs = normalizeIntArray(successIDs)
+
 	failureIDs := make([]int, len(failureNodes))
 	for i, node := range failureNodes {
 		failureIDs[i] = node.ID
 	}
+	failureIDs = normalizeIntArray(failureIDs)
+
 	alwaysIDs := make([]int, len(alwaysNodes))
 	for i, node := range alwaysNodes {
 		alwaysIDs[i] = node.ID
 	}
+	alwaysIDs = normalizeIntArray(alwaysIDs)
 
 	d = setWorkflowJobTemplateNodeResourceData(d, res)
 	d.Set("success_nodes", successIDs)
@@ -308,7 +350,7 @@ func resourceWorkflowJobTemplateNodeDelete(ctx context.Context, d *schema.Resour
 func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.WorkflowJobTemplateNode) *schema.ResourceData {
 
 	d.Set("extra_data", normalizeJsonYaml(r.ExtraData))
-	d.Set("inventory_id", strconv.Itoa(r.Inventory))
+	d.Set("inventory_id", r.Inventory)
 	d.Set("scm_branch", r.ScmBranch)
 	d.Set("job_type", r.JobType)
 	d.Set("job_tags", r.JobTags)
@@ -316,8 +358,8 @@ func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.Workf
 	d.Set("limit", r.Limit)
 	d.Set("diff_mode", r.DiffMode)
 	d.Set("verbosity", r.Verbosity)
-	d.Set("workflow_job_template_id", strconv.Itoa(r.WorkflowJobTemplate))
-	d.Set("unified_job_template_id", strconv.Itoa(r.UnifiedJobTemplate))
+	d.Set("workflow_job_template_id", r.WorkflowJobTemplate)
+	d.Set("unified_job_template_id", r.UnifiedJobTemplate)
 	d.Set("all_parents_must_converge", r.AllParentsMustConverge)
 	d.Set("identifier", r.Identifier)
 
@@ -328,7 +370,6 @@ func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.Workf
 func handleNodeRelationships(awxService *awx.WorkflowJobTemplateNodeService, nodeID int, d *schema.ResourceData) error {
 	relationshipEndpoints := []string{"success_nodes", "failure_nodes", "always_nodes"}
 
-	// For each relationship type
 	for _, endpoint := range relationshipEndpoints {
 		// Get existing relationships
 		existing, err := awxService.GetNodeRelationships(nodeID, endpoint)
@@ -336,40 +377,54 @@ func handleNodeRelationships(awxService *awx.WorkflowJobTemplateNodeService, nod
 			return fmt.Errorf("failed to get existing %s relationships: %v", endpoint, err)
 		}
 
-		// Convert existing relationships to a map for easy lookup
-		existingMap := make(map[int]bool)
-		for _, node := range existing {
-			existingMap[node.ID] = true
+		// Convert and normalize existing relationships
+		existingIDs := make([]int, len(existing))
+		for i, node := range existing {
+			existingIDs[i] = node.ID
 		}
+		existingIDs = normalizeIntArray(existingIDs)
 
-		// Get desired relationships from Terraform config
-		var desiredNodes []int
-		if nodes, ok := d.GetOk(endpoint); ok {
-			nodeList := nodes.([]interface{})
-			for _, node := range nodeList {
-				desiredNodes = append(desiredNodes, node.(int))
+		// Get and normalize desired relationships from Terraform config
+		desiredNodes := getNodeList(d, endpoint)
+
+		// Skip if the normalized arrays are identical
+		if len(existingIDs) == len(desiredNodes) {
+			different := false
+			for i := range existingIDs {
+				if existingIDs[i] != desiredNodes[i] {
+					different = true
+					break
+				}
+			}
+			if !different {
+				continue
 			}
 		}
 
-		// Convert desired relationships to a map for easy lookup
+		// Convert to maps for comparison
+		existingMap := make(map[int]bool)
+		for _, id := range existingIDs {
+			existingMap[id] = true
+		}
+
 		desiredMap := make(map[int]bool)
-		for _, nodeID := range desiredNodes {
-			desiredMap[nodeID] = true
+		for _, id := range desiredNodes {
+			desiredMap[id] = true
 		}
 
 		// Remove relationships that are no longer desired
-		for existingNodeID := range existingMap {
-			if !desiredMap[existingNodeID] {
-				if err := awxService.DisassociateNodeRelationship(nodeID, existingNodeID, endpoint); err != nil {
+		for existingID := range existingMap {
+			if !desiredMap[existingID] {
+				if err := awxService.DisassociateNodeRelationship(nodeID, existingID, endpoint); err != nil {
 					return fmt.Errorf("failed to remove %s relationship: %v", endpoint, err)
 				}
 			}
 		}
 
 		// Add new desired relationships
-		for desiredNodeID := range desiredMap {
-			if !existingMap[desiredNodeID] {
-				if err := awxService.AssociateNodeRelationship(nodeID, desiredNodeID, endpoint); err != nil {
+		for desiredID := range desiredMap {
+			if !existingMap[desiredID] {
+				if err := awxService.AssociateNodeRelationship(nodeID, desiredID, endpoint); err != nil {
 					return fmt.Errorf("failed to create %s relationship: %v", endpoint, err)
 				}
 			}
