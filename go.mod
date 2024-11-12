@@ -3,10 +3,10 @@ module github.com/denouche/terraform-provider-awx
 go 1.20
 
 require (
-	github.com/denouche/goawx v0.20.1
 	github.com/gruntwork-io/terratest v0.31.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.30.0
 	github.com/stretchr/testify v1.8.3
+	gitlab.iwd.re/dev-team-ops/goawx v0.22.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 

@@ -95,10 +95,6 @@ github.com/davecgh/go-spew v0.0.0-20151105211317-5215b55f46b2/go.mod h1:J7Y8YcW2
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/denouche/goawx v0.20.0 h1:wGrHMrAE1qLaE3DoYseCV8yIIfeIVw/HDNRw2zx0CwA=
-github.com/denouche/goawx v0.20.0/go.mod h1:MppzSteoj2xgfiqiRWW/Bf1a8z2FrRyvah1z0J2vJTY=
-github.com/denouche/goawx v0.20.1 h1:Mnkk1QxGPBvo3U4FDhcdHFrSMwIT+IwAkLDVQ7dCAoc=
-github.com/denouche/goawx v0.20.1/go.mod h1:MppzSteoj2xgfiqiRWW/Bf1a8z2FrRyvah1z0J2vJTY=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
@@ -410,6 +406,8 @@ github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 github.com/zclconf/go-cty v1.14.1 h1:t9fyA35fwjjUMcmL5hLER+e/rEPqrbCK1/OSE4SI9KA=
 github.com/zclconf/go-cty v1.14.1/go.mod h1:VvMs5i0vgZdhYawQNq5kePSpLAoz8u1xvZgrPIxfnZE=
+gitlab.iwd.re/dev-team-ops/goawx v0.22.0 h1:W08IVs2659jEJwBhXqLLBEMhvulEPVPIcxn1aMmc5as=
+gitlab.iwd.re/dev-team-ops/goawx v0.22.0/go.mod h1:rNXdOjS+eRGSQqZIw88Bk4nx+/GC4hhfS82xcgm2ikU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738/go.mod h1:dnLIgRNXwCJa5e+c6mIZCrds/GIG4ncV9HhK5PX7jPg=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
