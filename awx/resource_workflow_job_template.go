@@ -82,7 +82,6 @@ func resourceWorkflowJobTemplate() *schema.Resource {
 			"limit": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
 			},
 			"scm_branch": {
 				Type:     schema.TypeString,
@@ -126,7 +125,7 @@ func resourceWorkflowJobTemplateCreate(ctx context.Context, d *schema.ResourceDa
 	client := m.(*awx.AWX)
 	awxService := client.WorkflowJobTemplateService
 
-	result, err := awxService.CreateWorkflowJobTemplate(map[string]interface{}{
+	params := map[string]interface{}{
 		"name":                     d.Get("name").(string),
 		"description":              d.Get("description").(string),
 		"organization":             d.Get("organization_id").(int),
@@ -135,14 +134,21 @@ func resourceWorkflowJobTemplateCreate(ctx context.Context, d *schema.ResourceDa
 		"survey_enabled":           d.Get("survey_enabled").(bool),
 		"allow_simultaneous":       d.Get("allow_simultaneous").(bool),
 		"ask_variables_on_launch":  d.Get("ask_variables_on_launch").(bool),
-		"limit":                    d.Get("limit").(string),
 		"scm_branch":               d.Get("scm_branch").(string),
 		"ask_inventory_on_launch":  d.Get("ask_inventory_on_launch").(bool),
 		"ask_scm_branch_on_launch": d.Get("ask_scm_branch_on_launch").(bool),
 		"ask_limit_on_launch":      d.Get("ask_limit_on_launch").(bool),
 		"webhook_service":          d.Get("webhook_service").(string),
 		"webhook_credential":       d.Get("webhook_credential").(string),
-	}, map[string]string{})
+	}
+
+	// Only add limit if it's set
+	// It avoids setting it to an empty string on AWX which can cause issues not limiting job templates
+	if v, ok := d.GetOk("limit"); ok {
+		params["limit"] = v.(string)
+	}
+
+	result, err := awxService.CreateWorkflowJobTemplate(params, map[string]string{})
 	if err != nil {
 		log.Printf("Fail to Create Template %v", err)
 		diags = append(diags, diag.Diagnostic{
@@ -172,7 +178,7 @@ func resourceWorkflowJobTemplateUpdate(ctx context.Context, d *schema.ResourceDa
 		return buildDiagNotFoundFail("job Workflow template", id, err)
 	}
 
-	_, err = awxService.UpdateWorkflowJobTemplate(id, map[string]interface{}{
+	updateParams := map[string]interface{}{
 		"name":                     d.Get("name").(string),
 		"description":              d.Get("description").(string),
 		"organization":             d.Get("organization_id").(int),
@@ -181,14 +187,21 @@ func resourceWorkflowJobTemplateUpdate(ctx context.Context, d *schema.ResourceDa
 		"survey_enabled":           d.Get("survey_enabled").(bool),
 		"allow_simultaneous":       d.Get("allow_simultaneous").(bool),
 		"ask_variables_on_launch":  d.Get("ask_variables_on_launch").(bool),
-		"limit":                    d.Get("limit").(string),
 		"scm_branch":               d.Get("scm_branch").(string),
 		"ask_inventory_on_launch":  d.Get("ask_inventory_on_launch").(bool),
 		"ask_scm_branch_on_launch": d.Get("ask_scm_branch_on_launch").(bool),
 		"ask_limit_on_launch":      d.Get("ask_limit_on_launch").(bool),
 		"webhook_service":          d.Get("webhook_service").(string),
 		"webhook_credential":       d.Get("webhook_credential").(string),
-	}, map[string]string{})
+	}
+
+	// Only add limit if it's set
+	// It avoids setting it to an empty string on AWX which can cause issues not limiting job templates
+	if v, ok := d.GetOk("limit"); ok {
+		updateParams["limit"] = v.(string)
+	}
+
+	_, err = awxService.UpdateWorkflowJobTemplate(id, updateParams, map[string]string{})
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,

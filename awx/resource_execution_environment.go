@@ -1,14 +1,15 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-resource "awx_execution_environment" "default" {
-  name            = "acc-test"
-}
-```
 
+	resource "awx_execution_environment" "default" {
+	  name            = "acc-test"
+	}
+
+```
 */
 package awx
 
@@ -18,9 +19,10 @@ import (
 	"log"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 )
 
 func resourceExecutionEnvironment() *schema.Resource {
@@ -54,6 +56,13 @@ func resourceExecutionEnvironment() *schema.Resource {
 				Optional: true,
 				Default:  "",
 			},
+			"pull": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: "Parameter that must be either '', 'always', 'missing' or 'never'",
+				Default:  "",
+				ValidateFunc: validation.StringInSlice([]string{"", "always", "missing", "never"}, false),
+			},
 		},
 	}
 }
@@ -67,6 +76,7 @@ func resourceExecutionEnvironmentsCreate(ctx context.Context, d *schema.Resource
 		"name":         d.Get("name").(string),
 		"image":        d.Get("image").(string),
 		"description":  d.Get("description").(string),
+		"pull":         d.Get("pull").(string),
 		"organization": AtoipOr(d.Get("organization").(string), nil),
 		"credential":   AtoipOr(d.Get("credential").(string), nil),
 	}, map[string]string{})
@@ -104,6 +114,7 @@ func resourceExecutionEnvironmentsUpdate(ctx context.Context, d *schema.Resource
 		"name":         d.Get("name").(string),
 		"image":        d.Get("image").(string),
 		"description":  d.Get("description").(string),
+		"pull":         d.Get("pull").(string),
 		"organization": AtoipOr(d.Get("organization").(string), nil),
 		"credential":   AtoipOr(d.Get("credential").(string), nil),
 	}, map[string]string{})
@@ -158,6 +169,7 @@ func setExecutionEnvironmentsResourceData(d *schema.ResourceData, r *awx.Executi
 	d.Set("name", r.Name)
 	d.Set("image", r.Image)
 	d.Set("description", r.Description)
+	d.Set("pull", r.Pull)
 	d.Set("organization", r.Organization)
 	d.Set("credential", r.Credential)
 	d.SetId(strconv.Itoa(r.ID))

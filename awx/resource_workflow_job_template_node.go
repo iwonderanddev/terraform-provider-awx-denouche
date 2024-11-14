@@ -180,17 +180,20 @@ func resourceWorkflowJobTemplateNodeCreate(ctx context.Context, d *schema.Resour
 	// Create params map
 	params := map[string]interface{}{
 		"extra_data":                d.Get("extra_data").(string),
-		"scm_branch":                d.Get("scm_branch").(string),
-		"skip_tags":                 d.Get("skip_tags").(string),
-		"job_type":                  d.Get("job_type").(string),
-		"job_tags":                  d.Get("job_tags").(string),
-		"limit":                     d.Get("limit").(string),
-		"diff_mode":                 d.Get("diff_mode").(bool),
-		"verbosity":                 d.Get("verbosity").(int),
 		"workflow_job_template":     d.Get("workflow_job_template_id").(int),
 		"unified_job_template":      d.Get("unified_job_template_id").(int),
 		"all_parents_must_converge": d.Get("all_parents_must_converge").(bool),
 		"identifier":                d.Get("identifier").(string),
+	}
+	
+	if d.Get("job_type").(string) == "run" {
+		params["job_type"] = d.Get("job_type").(string)
+    params["verbosity"] = d.Get("verbosity").(int)
+		params["limit"] = d.Get("limit").(string)
+		params["scm_branch"] = d.Get("scm_branch").(string)
+		params["job_tags"] = d.Get("job_tags").(string)
+		params["skip_tags"] = d.Get("skip_tags").(string)
+		params["diff_mode"] = d.Get("diff_mode").(bool)
 	}
 
 	// Only add inventory if it's set
@@ -237,17 +240,20 @@ func resourceWorkflowJobTemplateNodeUpdate(ctx context.Context, d *schema.Resour
 	// Create update params map
 	updateParams := map[string]interface{}{
 		"extra_data":                d.Get("extra_data").(string),
-		"scm_branch":                d.Get("scm_branch").(string),
-		"skip_tags":                 d.Get("skip_tags").(string),
-		"job_type":                  d.Get("job_type").(string),
-		"job_tags":                  d.Get("job_tags").(string),
-		"limit":                     d.Get("limit").(string),
-		"diff_mode":                 d.Get("diff_mode").(bool),
-		"verbosity":                 d.Get("verbosity").(int),
 		"workflow_job_template":     d.Get("workflow_job_template_id").(int),
 		"unified_job_template":      d.Get("unified_job_template_id").(int),
 		"all_parents_must_converge": d.Get("all_parents_must_converge").(bool),
 		"identifier":                d.Get("identifier").(string),
+	}
+
+	if d.Get("job_type").(string) == "run" {
+		updateParams["job_type"] = d.Get("job_type").(string)
+    updateParams["verbosity"] = d.Get("verbosity").(int)
+		updateParams["limit"] = d.Get("limit").(string)
+		updateParams["scm_branch"] = d.Get("scm_branch").(string)
+		updateParams["job_tags"] = d.Get("job_tags").(string)
+		updateParams["skip_tags"] = d.Get("skip_tags").(string)
+		updateParams["diff_mode"] = d.Get("diff_mode").(bool)
 	}
 
 	// Only add inventory if it's set
