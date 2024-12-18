@@ -1,14 +1,15 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-resource "awx_notification_template" "default" {
-  name                      = "notification_template-test"
-}
-```
 
+	resource "awx_notification_template" "default" {
+	  name                      = "notification_template-test"
+	}
+
+```
 */
 package awx
 
@@ -19,9 +20,9 @@ import (
 	"log"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func resourceNotificationTemplate() *schema.Resource {

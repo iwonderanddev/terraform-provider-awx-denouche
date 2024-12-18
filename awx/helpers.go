@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 	"gopkg.in/yaml.v2"
 )
 

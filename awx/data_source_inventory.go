@@ -1,15 +1,16 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-data "awx_inventory" "default" {
-  name            = "private_services"
-  organization_id = data.awx_organization.default.id
-}
-```
 
+	data "awx_inventory" "default" {
+	  name            = "private_services"
+	  organization_id = data.awx_organization.default.id
+	}
+
+```
 */
 package awx
 
@@ -17,9 +18,9 @@ import (
 	"context"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func dataSourceInventory() *schema.Resource {

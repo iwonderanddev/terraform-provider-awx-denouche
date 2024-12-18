@@ -26,7 +26,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func resourceWorkflowJobTemplateNode() *schema.Resource {
@@ -355,7 +355,7 @@ func resourceWorkflowJobTemplateNodeDelete(ctx context.Context, d *schema.Resour
 
 func setWorkflowJobTemplateNodeResourceData(d *schema.ResourceData, r *awx.WorkflowJobTemplateNode) *schema.ResourceData {
 
-	d.Set("extra_data", normalizeJsonYaml(r.ExtraData))
+	d.Set("extra_data", r.ExtraData)
 	d.Set("inventory_id", r.Inventory)
 	d.Set("scm_branch", r.ScmBranch)
 	d.Set("job_type", r.JobType)

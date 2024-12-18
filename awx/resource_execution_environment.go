@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func resourceExecutionEnvironment() *schema.Resource {

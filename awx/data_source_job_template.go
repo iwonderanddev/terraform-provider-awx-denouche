@@ -1,14 +1,15 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-data "awx_job_template" "default" {
-  name = "Default"
-}
-```
 
+	data "awx_job_template" "default" {
+	  name = "Default"
+	}
+
+```
 */
 package awx
 
@@ -18,9 +19,9 @@ import (
 
 	"log"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func dataSourceJobTemplate() *schema.Resource {

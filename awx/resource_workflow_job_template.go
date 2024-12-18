@@ -23,7 +23,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func resourceWorkflowJobTemplate() *schema.Resource {

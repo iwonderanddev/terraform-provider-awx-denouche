@@ -1,12 +1,11 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
 *TBD*
 ```
-
 */
 package awx
 
@@ -15,9 +14,9 @@ import (
 	"fmt"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func resourceInventoryGroup() *schema.Resource {

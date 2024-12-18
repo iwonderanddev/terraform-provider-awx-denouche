@@ -1,20 +1,21 @@
 /*
 *TBD*
 
-Example Usage
+# Example Usage
 
 ```hcl
-resource "awx_project" "myproj" {
-  name = "My AWX Project"
-  ...
-}
 
-data "awx_project_role" "proj_admins" {
-  name       = "Admin"
-  project_id = resource.awx_project.myproj.id
-}
+	resource "awx_project" "myproj" {
+	  name = "My AWX Project"
+	  ...
+	}
+
+	data "awx_project_role" "proj_admins" {
+	  name       = "Admin"
+	  project_id = resource.awx_project.myproj.id
+	}
+
 ```
-
 */
 package awx
 
@@ -22,9 +23,9 @@ import (
 	"context"
 	"strconv"
 
-	awx "gitlab.iwd.re/dev-team-ops/goawx/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	awx "github.com/iwonderanddev/goawx/client"
 )
 
 func dataSourceProjectRole() *schema.Resource {
